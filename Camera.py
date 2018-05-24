@@ -62,7 +62,7 @@ class Camera:
         if not self.photo_w is None and not self.photo_h is None:
             height = self.photo_h
             # subtract label height
-            if not self.label_path is not None:
+            if not self.label_path is None:
                 height = height - self.label_h
             self.camera.resolution = (self.photo_w, height)
         
