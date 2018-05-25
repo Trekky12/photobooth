@@ -22,6 +22,7 @@ class Camera:
     photo_countdown_time = 3
     image_overlay       = -1    # Preview of montage
     base_filename       = None
+    final_image         = None
     image_mode_multi    = False
 
 
@@ -59,12 +60,11 @@ class Camera:
             
         self.camera.annotate_text_size = 80
         
-        if not self.photo_w is None and not self.photo_h is None:
-            height = self.photo_h
-            # subtract label height
-            if not self.label_path is None:
-                height = height - self.label_h
-            self.camera.resolution = (self.photo_w, height)
+        # subtract label height
+        if not self.label_path is None:
+            self.photo_h = self.photo_h - self.label_h
+        
+        self.camera.resolution = (self.photo_w, self.photo_h)
         
         # the image preview is flipped horizontally
         self.camera.hflip = True 
@@ -160,11 +160,13 @@ class Camera:
         if self.image_overlay != -1:
             self.remove_overlay(self.image_overlay)
             self.image_overlay = -1
+            # Reset current image
             self.base_filename = None
+            self.final_image = None
             
     def get_image(self):
-        if self.base_filename is not None:
-            return self.base_filename  + '_montage.jpg'
+        if self.final_image is not None:
+            return self.final_image
         return None
     
     def create_file_name(self):
@@ -178,11 +180,24 @@ class Camera:
         if self.base_filename is None:
             self.create_file_name()
     
-        # get filename
+        # set resolution and filename
         if self.image_mode_multi:
-            filename = self.base_filename + '_' + str(photo_number) + 'of'+ str(self.image_count)+'.jpg'
+            filename = self.base_filename + '_multi_' + str(photo_number) + 'of'+ str(self.image_count)+'.jpg'
+            
+            # for the multi image the picture can be half width/height and the tile spacing (2*10) must be subtracted
+            photo_w_multi = round(self.photo_w / 2.0) - (2*10)
+            photo_h_multi = round(self.photo_h / 2.0) - (2*10)
+            
+            self.camera.resolution = (photo_w_multi, photo_h_multi)
+            
         else:
-            filename = self.base_filename + '.jpg'
+            filename = self.base_filename + '_single.jpg'
+            
+            # resolution for single shot is full shot
+            photo_w_single = self.photo_w
+            photo_h_single = self.photo_h
+            
+            self.camera.resolution = (photo_w_single, photo_h_single)
 
         # show preview
         self.camera.preview.alpha = 255    
@@ -214,30 +229,41 @@ class Camera:
         print("Processing...")
         processing_image = self.path + "/assets/processing.png"
         processing_overlay = self.overlay_image(processing_image)
-
+        
         filename = self.base_filename + '_montage.jpg'
 
         # combine the 4 images
         if self.image_mode_multi:
-            IMG1 = "%s_%sof%s.jpg" % (self.base_filename, 1, self.image_count)
-            IMG2 = "%s_%sof%s.jpg" % (self.base_filename, 2, self.image_count)
-            IMG3 = "%s_%sof%s.jpg" % (self.base_filename, 3, self.image_count)
-            IMG4 = "%s_%sof%s.jpg" % (self.base_filename, 4, self.image_count)
+            IMG1 = "%s_multi_%sof%s.jpg" % (self.base_filename, 1, self.image_count)
+            IMG2 = "%s_multi_%sof%s.jpg" % (self.base_filename, 2, self.image_count)
+            IMG3 = "%s_multi_%sof%s.jpg" % (self.base_filename, 3, self.image_count)
+            IMG4 = "%s_multi_%sof%s.jpg" % (self.base_filename, 4, self.image_count)
+            
             fileNameTemp = self.base_filename + '_montageTemp.jpg'
+            
             subprocess.call(["montage", IMG1,IMG2,IMG3,IMG4,"-tile", "2x2", "-geometry", "+10+10",fileNameTemp])
+            
         else:
-            fileNameTemp = self.base_filename + '.jpg'
+            fileNameTemp = self.base_filename + '_single.jpg'
 
-        # prepare filename for correct width
-        fileNameTemp = "%s[%sx]" % (fileNameTemp, self.camera.resolution.width)
-
-        # append label to image
+        
         if self.label_path is not None:
-            label = "%s[%sx]" % (self.label_path, self.camera.resolution.width)
-            subprocess.call(["montage",fileNameTemp,label,"-tile", "1x2","-geometry", "+5+5",filename])
-        # create montage without label but with border
+            # prepare filename for correct width
+            fileNameTemp = "%s[%sx%s]" % (fileNameTemp, self.photo_w, self.photo_h)
+            
+            # append label to image
+            label = "%s[%sx%s]" % (self.label_path, self.photo_w, self.label_h)
+            
+            # when using geometry +0+0 the concatenate mode is selected which is okay here
+            # see http://www.imagemagick.org/Usage/montage/#zero_geometry
+            subprocess.call(["montage",fileNameTemp,label,"-tile", "1x2","-geometry", "+0+0",filename])
+        
         else:
-            subprocess.call(["montage",fileNameTemp,"-tile", "1x1","-geometry", "+5+5",filename])
+            filename = fileNameTemp
+            
+        
+        # set the final name
+        self.final_image = filename
                                             
         print("Images have been merged.")
         self.remove_overlay(processing_overlay)

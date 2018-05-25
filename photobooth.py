@@ -117,7 +117,9 @@ def main():
             
             # do montage
             mfname = camera.convertMergeImages()
-            photo_filenames.append(mfname)
+            # on a single shot without label the name is identical so skip this
+            if not mfname in photo_filenames:
+                photo_filenames.append(mfname)
 
             # show montage
             camera.show_image()
