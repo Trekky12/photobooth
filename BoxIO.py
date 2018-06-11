@@ -11,6 +11,7 @@ class BoxIO:
     btn_print  = None     # pin that the 'print photo' button is attached to
     btn_dome   = None     # pin that the big dome button is attachted to
     btn_exit   = None     # pin that the 'exit' button is attached to
+    btn_relay  = None     # pin that triggers the relay
 
     led_single = None     # pin that the single led is attached to
     led_multi  = None     # pin that the multi led is attached to
@@ -36,6 +37,8 @@ class BoxIO:
             self.btn_dome = config.btn_dome
         if hasattr(config, "btn_exit"):
             self.btn_exit = config.btn_exit
+        if hasattr(config, "btn_relay"):
+            self.btn_relay = config.btn_relay
         if hasattr(config, "led_single"):
             self.led_single = config.led_single
         if hasattr(config, "led_multi"):
@@ -64,6 +67,9 @@ class BoxIO:
         if not self.btn_dome is None:
             GPIO.setup(self.btn_dome,   GPIO.IN, pull_up_down=GPIO.PUD_UP)
             
+        if not self.btn_relay is None:
+            GPIO.setup(self.btn_relay,  GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            
         if not self.led_single is None:
             GPIO.setup(self.led_single, GPIO.OUT)
             GPIO.output(self.led_single, True)
@@ -84,9 +90,7 @@ class BoxIO:
         # with NO (normally open) the switch closes with a HIGH signal 
         if not self.relay is None:
             GPIO.setup(self.relay, GPIO.OUT, initial=GPIO.LOW)
-            GPIO.output(self.relay, GPIO.HIGH)
-            sleep(2)
-            GPIO.output(self.relay, GPIO.LOW) 
+            self.trigger_relay()
 
         self.enable_buttons()
 
@@ -105,6 +109,9 @@ class BoxIO:
         
         if not self.btn_dome is None:
             GPIO.add_event_detect(self.btn_dome,    GPIO.FALLING, callback=self.btn_dome_press,     bouncetime=200)
+            
+        if not self.btn_relay is None:
+            GPIO.add_event_detect(self.btn_relay,   GPIO.FALLING, callback=self.btn_relay_press,    bouncetime=200)
     
     def disable_buttons(self):
         if not self.btn_single is None:
@@ -121,6 +128,9 @@ class BoxIO:
         
         if not self.btn_dome is None:
             GPIO.remove_event_detect(self.btn_dome)  
+        
+        if not self.btn_relay is None:
+            GPIO.remove_event_detect(self.btn_relay)  
         
     def btn_single_press(self, channel):
         print("Button Single pressed")
@@ -158,6 +168,10 @@ class BoxIO:
         print("Button Dome pressed")     
         self.btn_dome_pressed  = True
         
+    def btn_relay_press(self, channel):
+        print("Button Relay pressed")    
+        self.trigger_relay()   
+        
     def is_image_mode_multi(self):
         return self.image_mode_multi
         
@@ -182,6 +196,11 @@ class BoxIO:
     def set_dome_led(self, state):
         if not self.led_dome is None:
             GPIO.output(self.led_dome, state)
+            
+    def trigger_relay(self):
+        GPIO.output(self.relay, GPIO.HIGH)
+        sleep(2)
+        GPIO.output(self.relay, GPIO.LOW) 
             
     def printPic(self, fileName):
         """
@@ -212,6 +231,8 @@ class BoxIO:
             sleep(1)
             GPIO.output(self.led_print, True)
             sleep(1)
+            print(conn.getJobs().get(print_id, None))
+            print(conn.getJobAttributes(print_id))
         
         # Disable printing LED
         GPIO.output(self.led_print, False)

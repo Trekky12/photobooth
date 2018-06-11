@@ -4,11 +4,12 @@ btn_multi  = 22     # pin that the 'take multiple photos' button is attached to
 btn_print  = 27     # pin that the 'print photo' button is attached to
 btn_dome   = 18     # pin that the big dome button is attachted to
 btn_exit   = 4      # pin that the 'exit' button is attached to
+btn_relay  = 23     # pin that triggers the relay
 led_single = 12     # pin that the single led is attached to
 led_multi  = 6      # pin that the multi led is attached to
 led_print  = 16     # pin that the print led is attached to
 led_dome   = 5      # pin that the big dome led is attached to
-relay      = 23     # pin that the relay for enable the printer is connected
+relay      = 24     # pin that the relay for enable the printer is connected
 
 # WS2801 LED count
 pixel_count = 14    
@@ -42,7 +43,7 @@ blink_speed = 8
 prep_delay  = 2             
 
 # countdown time before photo is taken
-photo_countdown_time = 8    
+photo_countdown_time = 3    
 
 # Primary folder to save images to (required):
 images_folder = "photos"
