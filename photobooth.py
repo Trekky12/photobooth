@@ -34,6 +34,7 @@ camera = Camera(config)
 def exit_box():
     camera.stop()
     leds.clear()
+    boxio.trigger_relay()
     boxio.cleanup()	 
     sys.exit()
     

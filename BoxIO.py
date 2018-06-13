@@ -87,9 +87,9 @@ class BoxIO:
             
             
         # Start printer with relay
-        # with NO (normally open) the switch closes with a HIGH signal 
+        # the printer is connected to NO which means HIGH is holding this state and LOW is closing the relay
         if not self.relay is None:
-            GPIO.setup(self.relay, GPIO.OUT, initial=GPIO.LOW)
+            GPIO.setup(self.relay, GPIO.OUT, initial=GPIO.HIGH)
             self.trigger_relay()
 
         self.enable_buttons()
@@ -198,9 +198,9 @@ class BoxIO:
             GPIO.output(self.led_dome, state)
             
     def trigger_relay(self):
-        GPIO.output(self.relay, GPIO.HIGH)
+        GPIO.output(self.relay, GPIO.LOW)
         sleep(2)
-        GPIO.output(self.relay, GPIO.LOW) 
+        GPIO.output(self.relay, GPIO.HIGH) 
             
     def printPic(self, fileName):
         """
