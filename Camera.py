@@ -176,6 +176,8 @@ class Camera:
         self.base_filename = base_filename
     
     def capture(self, photo_number):
+    
+        
         
         if self.base_filename is None:
             self.create_file_name()
@@ -198,6 +200,12 @@ class Camera:
             photo_h_single = self.photo_h
             
             self.camera.resolution = (photo_w_single, photo_h_single)
+            
+        # it is possible that the preview resolution is smaller when switching from
+        # mode multi to mode single so reset the resolution here
+        # see https://github.com/waveform80/picamera/blob/master/picamera/renderers.py#L516-L520
+        if self.camera.resolution.width > self.screen_w and self.camera.resolution.height > self.screen_h:
+            self.camera.preview.resolution = (self.screen_w, self.screen_h)
 
         # show preview
         self.camera.preview.alpha = 255    
