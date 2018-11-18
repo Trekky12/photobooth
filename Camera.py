@@ -9,6 +9,10 @@ import datetime
 import subprocess
 import os
 
+import logging
+
+logger = logging.getLogger("photobooth")
+
 class Camera:
     photo_w         = 1920
     photo_h         = 1280
@@ -56,6 +60,7 @@ class Camera:
             self.camera = picamera.PiCamera()
         except:
             print("error initializing the camera - exiting")
+            logger.error("error initializing the camera - exiting")
             raise SystemExit
             
         self.camera.annotate_text_size = 80
@@ -176,9 +181,7 @@ class Camera:
         self.base_filename = base_filename
     
     def capture(self, photo_number):
-    
-        
-        
+
         if self.base_filename is None:
             self.create_file_name()
     
@@ -221,7 +224,8 @@ class Camera:
         
         # hide preview
         self.camera.preview.alpha = 0
-        print("Photo saved: " + filename)      
+        print("Photo saved: " + filename)
+        logger.info("Photo saved: %s", filename)        
         
         return filename
 
@@ -235,6 +239,7 @@ class Camera:
 
         # Processing
         print("Processing...")
+        logger.info("Processing...")      
         processing_image = self.path + "/assets/processing.png"
         processing_overlay = self.overlay_image(processing_image)
         
@@ -274,6 +279,7 @@ class Camera:
         self.final_image = filename
                                             
         print("Images have been merged.")
+        logger.info("Images have been merged.")      
         self.remove_overlay(processing_overlay)
         
         return filename

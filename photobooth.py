@@ -4,7 +4,17 @@ from time import sleep
 import sys
 from shutil import copy2
 import os
+import logging
 
+
+# Logging
+logger = logging.getLogger("photobooth")
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler( os.path.dirname(os.path.realpath(__file__)) + '/photobooth.log')
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 try:
     import config
@@ -23,6 +33,7 @@ except ImportError as missing_module:
     else:
         print('   python3 -m pip install -r requirements.txt')
     print('')
+    logger.error('%s', missing_module)
     sys.exit()
 
 
@@ -50,10 +61,12 @@ def check_folders():
             folders_checked.append(folder)
         else:
             print('ERROR: Cannot use same folder path ('+folder+') twice.')
+            logger.error('ERROR: Cannot use same folder path (%s) twice.', folder)
 
         #Create folder if doesn't exist
         if not os.path.exists(folder):
             print('Creating folder: ' + folder)
+            logger.info('Creating folder %s', folder)
             os.makedirs(folder)    
 
 def main():
@@ -81,6 +94,7 @@ def main():
         # Dome button pressed
         if boxio.is_dome_pressed():
             print("Dome pressed")
+            logger.info('Dome pressed')
             
             # disable buttons so no new interrupt rises
             boxio.disable_buttons()
@@ -117,6 +131,7 @@ def main():
             leds.clear()
             
             # do montage
+            logger.info('Do montage')
             mfname = camera.convertMergeImages()
             # on a single shot without label the name is identical so skip this
             if not mfname in photo_filenames:
@@ -130,6 +145,7 @@ def main():
                 for dest in config.images_folder_copy:
                     for src in photo_filenames:
                         print(src + ' -> ' + dest)
+                        logger.info('Copy %s -> %s', src, dest)
                         copy2(src, dest)
             
             
@@ -139,6 +155,7 @@ def main():
             
         if boxio.is_print_pressed():
             print("Print pressed")
+            logger.info('Print pressed')
             boxio.reset_print_pressed()
             filename = camera.get_image()
             if filename is not None:
@@ -146,6 +163,7 @@ def main():
             
         if boxio.is_exit_pressed():
             print("Exit pressed")
+            logger.info('Exit pressed')
             raise Exception('Exit Button pressed')
 
         sleep(0.1)
@@ -156,9 +174,11 @@ if __name__ == "__main__":
         main()
 
     except KeyboardInterrupt:
+        logger.info('Killed by Keyboard')
         print("Goodbye")
 
     except Exception as exception:
+        logger.error('unexpected error: %s', exception)
         print("unexpected error: ", str(exception))
 
     finally:

@@ -43,7 +43,7 @@ blink_speed = 8
 prep_delay  = 2             
 
 # countdown time before photo is taken
-photo_countdown_time = 3    
+photo_countdown_time = 10    
 
 # Primary folder to save images to (required):
 images_folder = "photos"

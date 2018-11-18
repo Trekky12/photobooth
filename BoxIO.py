@@ -3,6 +3,9 @@
 import RPi.GPIO as GPIO
 from time import sleep
 import cups
+import logging
+
+logger = logging.getLogger("photobooth")
 
 class BoxIO:
 
@@ -26,6 +29,8 @@ class BoxIO:
     image_mode_multi    = False
 
     def __init__(self, config):
+    
+        logger.info("Init Buttons")
     
         if hasattr(config, "btn_single"):
             self.btn_single = config.btn_single
@@ -134,6 +139,7 @@ class BoxIO:
         
     def btn_single_press(self, channel):
         print("Button Single pressed")
+        logger.info("Button Single pressed")
         
         self.image_mode_multi = False
         
@@ -146,6 +152,7 @@ class BoxIO:
 
     def btn_multi_press(self, channel):
         print("Button Multi pressed")
+        logger.info("Button Multi pressed")
         
         self.image_mode_multi = True
         
@@ -157,19 +164,23 @@ class BoxIO:
 
     def btn_print_press(self, channel):
         print("Button Print pressed") 
+        logger.info("Button Print pressed")
         self.btn_print_pressed = True
         GPIO.output(self.led_print, True)
         
     def btn_exit_press(self, channel):
-        print("Button Exit pressed")    
+        print("Button Exit pressed")   
+        logger.info("Button Exit pressed")        
         self.btn_exit_pressed = True    
 
     def btn_dome_press(self, channel):
-        print("Button Dome pressed")     
+        print("Button Dome pressed") 
+        logger.info("Button Dome pressed")
         self.btn_dome_pressed  = True
         
     def btn_relay_press(self, channel):
-        print("Button Relay pressed")    
+        print("Button Relay pressed")
+        logger.info("Button Relay pressed")
         self.trigger_relay()   
         
     def is_image_mode_multi(self):
@@ -209,6 +220,7 @@ class BoxIO:
         and https://stackoverflow.com/a/39118346
         """
         print("Try to print %s" %(fileName))
+        logger.info("Try to print %s", fileName)
         
         conn = cups.Connection()
         printers = conn.getPrinters()
@@ -222,8 +234,10 @@ class BoxIO:
         print_id = conn.printFile(default_printer, fileName, 'photobooth', {})
         
         print("Print job successfully created.")
+        logger.info("Print job successfully created")
         
         print(conn.getJobs().get(print_id, None))
+        logger.debug(conn.getJobs().get(print_id, None))
         # Check if print job is done
         while conn.getJobs().get(print_id, None):
             # blink LED
@@ -231,8 +245,8 @@ class BoxIO:
             sleep(1)
             GPIO.output(self.led_print, True)
             sleep(1)
-            print(conn.getJobs().get(print_id, None))
-            print(conn.getJobAttributes(print_id))
+            logger.debug(conn.getJobs().get(print_id, None))
+            logger.debug(conn.getJobAttributes(print_id))
         
         # Disable printing LED
         GPIO.output(self.led_print, False)
