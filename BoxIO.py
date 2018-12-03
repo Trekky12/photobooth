@@ -219,34 +219,35 @@ class BoxIO:
         inspired by https://github.com/zoroloco/boothy/blob/master/pbooth.py
         and https://stackoverflow.com/a/39118346
         """
-        print("Try to print %s" %(fileName))
-        logger.info("Try to print %s", fileName)
-        
-        conn = cups.Connection()
-        printers = conn.getPrinters()
-        default_printer = conn.getDefault()
-        cups.setUser('pi')
-        
-        # possible options:
-        #   'fit-to-page':'True'
-        #   'copies': '2'
-        #   'scaling' : '100'
-        print_id = conn.printFile(default_printer, fileName, 'photobooth', {})
-        
-        print("Print job successfully created.")
-        logger.info("Print job successfully created")
-        
-        print(conn.getJobs().get(print_id, None))
-        logger.debug(conn.getJobs().get(print_id, None))
-        # Check if print job is done
-        while conn.getJobs().get(print_id, None):
-            # blink LED
-            GPIO.output(self.led_print, False)
-            sleep(1)
-            GPIO.output(self.led_print, True)
-            sleep(1)
+        if fileName is not None:
+            print("Try to print %s" %(fileName))
+            logger.info("Try to print %s", fileName)
+            
+            conn = cups.Connection()
+            printers = conn.getPrinters()
+            default_printer = conn.getDefault()
+            cups.setUser('pi')
+            
+            # possible options:
+            #   'fit-to-page':'True'
+            #   'copies': '2'
+            #   'scaling' : '100'
+            print_id = conn.printFile(default_printer, fileName, 'photobooth', {})
+            
+            print("Print job successfully created.")
+            logger.info("Print job successfully created")
+            
+            print(conn.getJobs().get(print_id, None))
             logger.debug(conn.getJobs().get(print_id, None))
-            logger.debug(conn.getJobAttributes(print_id))
+            # Check if print job is done
+            while conn.getJobs().get(print_id, None):
+                # blink LED
+                GPIO.output(self.led_print, False)
+                sleep(1)
+                GPIO.output(self.led_print, True)
+                sleep(1)
+                logger.debug(conn.getJobs().get(print_id, None))
+                logger.debug(conn.getJobAttributes(print_id))
         
         # Disable printing LED
         GPIO.output(self.led_print, False)

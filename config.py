@@ -23,10 +23,12 @@ pixel_count = 14
 # the label is subtracted from the height so for a 128px label the photo height is 1152px
 photo_w    = 1920   # photo resolution
 photo_h    = 1280
+photo_hflip = True
+preview_hflip = False
 
 # the path to the label
 # if there should be no label you need to can comment this entry out
-label_path  = "/home/pi/photobooth/assets/label.jpg"
+label_path  = "/media/pi/INTENSO/label.jpg"
 label_h     = 128
 
 # display resolution
@@ -45,9 +47,12 @@ prep_delay  = 2
 # countdown time before photo is taken
 photo_countdown_time = 10    
 
+# show the final image for x seconds (0 for endless)
+show_image_time = 60
+
 # Primary folder to save images to (required):
 images_folder = "photos"
 
 # Additional locations where images will be saved to (optional):
-images_folder_copy = ["/home/pi/photos"]
+images_folder_copy = ["/home/pi/photos", "/media/pi/INTENSO/photos"]
 

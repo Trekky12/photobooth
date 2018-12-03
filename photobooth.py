@@ -2,7 +2,7 @@
 
 from time import sleep
 import sys
-from shutil import copy2
+import shutil
 import os
 import logging
 
@@ -37,11 +37,6 @@ except ImportError as missing_module:
     sys.exit()
 
 
-boxio = BoxIO(config)
-leds = LEDs(0,0,config.pixel_count)
-camera = Camera(config)
-
-
 def exit_box():
     camera.stop()
     leds.clear()
@@ -56,27 +51,37 @@ def check_folders():
     if hasattr(config, "images_folder_copy") and isinstance(config.images_folder_copy, list):
         folders_list.extend(config.images_folder_copy)    
 
+    # check folders for duplicates and create missing folders
     for folder in folders_list:
         if folder not in folders_checked:
             folders_checked.append(folder)
         else:
             print('ERROR: Cannot use same folder path ('+folder+') twice.')
             logger.error('ERROR: Cannot use same folder path (%s) twice.', folder)
+            exit_box()
 
         #Create folder if doesn't exist
         if not os.path.exists(folder):
             print('Creating folder: ' + folder)
             logger.info('Creating folder %s', folder)
-            os.makedirs(folder)    
+            try:
+                os.makedirs(folder)
+            except:
+                print('Error creating folder: %s' % folder)
+                logger.error('Error creating folder %s', folder)
+                
+                
+    # check label path
+    if hasattr(config, "label_path") and not os.path.exists(config.label_path):
+        config.label_path = None
 
-def main():
-
-    # check folder existance
-    check_folders()
-
+def intro():
     # intro screen
     intro_image = camera.get_path() + "/assets/intro.png"
-    overlay_intro = camera.overlay_image(intro_image, 0, 4)
+    return camera.overlay_image(intro_image, 0, 4)
+        
+def main():
+    overlay_intro = intro()
 
     i = 0
     while True:
@@ -99,7 +104,7 @@ def main():
             # disable buttons so no new interrupt rises
             boxio.disable_buttons()
             
-            # remove intro overlay (only after first start because afterwards there is the last image as overlay)
+            # remove intro overlay 
             if overlay_intro is not None:
                 camera.remove_overlay(overlay_intro)
                 overlay_intro = None
@@ -136,9 +141,6 @@ def main():
             # on a single shot without label the name is identical so skip this
             if not mfname in photo_filenames:
                 photo_filenames.append(mfname)
-
-            # show montage
-            camera.show_image()
             
             # save photos into backup folder
             if hasattr(config, "images_folder_copy") and isinstance(config.images_folder_copy, list):
@@ -146,20 +148,32 @@ def main():
                     for src in photo_filenames:
                         print(src + ' -> ' + dest)
                         logger.info('Copy %s -> %s', src, dest)
-                        copy2(src, dest)
+                        try:
+                            shutil.copy2(src, dest)
+                            print("Copied")
+                        except shutil.Error as e:
+                            print("Error: %s" % e)
+                            logger.error('Error: %s ', e)
+                        except IOError as e:
+                            print("Error: %s" % e.strerror)
+                            logger.error('Error: %s ', e.strerror)            
             
+            # show montage in layer 5
+            camera.show_image()
             
             # enable buttons
             boxio.reset_dome_pressed()
             boxio.enable_buttons()
+            
+            # show intro in layer 4
+            overlay_intro = intro()
             
         if boxio.is_print_pressed():
             print("Print pressed")
             logger.info('Print pressed')
             boxio.reset_print_pressed()
             filename = camera.get_image()
-            if filename is not None:
-                boxio.printPic(filename)
+            boxio.printPic(filename)
             
         if boxio.is_exit_pressed():
             print("Exit pressed")
@@ -169,6 +183,15 @@ def main():
         sleep(0.1)
 
 
+        
+# check folder existance
+check_folders()
+
+boxio = BoxIO(config)
+leds = LEDs(0,0,config.pixel_count)
+camera = Camera(config)
+        
+        
 if __name__ == "__main__":
     try:
         main()

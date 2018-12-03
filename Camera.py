@@ -28,6 +28,9 @@ class Camera:
     base_filename       = None
     final_image         = None
     image_mode_multi    = False
+    photo_hflip         = True
+    preview_hflip       = True
+    show_image_time     = 0
 
 
     def __init__(self, config):
@@ -50,8 +53,14 @@ class Camera:
         if hasattr(config, "label_path"):
             self.label_path = config.label_path       
         if hasattr(config, "label_h"):
-            self.label_h = config.label_h           
-        
+            self.label_h = config.label_h  
+        if hasattr(config, "photo_hflip"):
+            self.photo_hflip = config.photo_hflip  
+        if hasattr(config, "preview_hflip"):
+            self.preview_hflip = config.preview_hflip
+        if hasattr(config, "show_image_time"):
+            self.show_image_time = config.show_image_time            
+            
         # create absolute path
         self.path = os.path.dirname(os.path.realpath(__file__))
     
@@ -72,10 +81,10 @@ class Camera:
         self.camera.resolution = (self.photo_w, self.photo_h)
         
         # the image preview is flipped horizontally
-        self.camera.hflip = True 
+        self.camera.hflip = self.photo_hflip 
         
         # start camera preview
-        self.camera.start_preview(resolution=(self.screen_w, self.screen_h))
+        self.camera.start_preview(resolution=(self.screen_w, self.screen_h), hflip=self.preview_hflip)
         
         # show preview only right before capturing
         # the preview is in layer 2
@@ -138,7 +147,6 @@ class Camera:
         if duration > 0:
             sleep(duration)
             self.camera.remove_overlay(o_id)
-            
             return -1 # '-1' indicates there is no overlay
         else:
             return o_id # we have an overlay, and will need to remove it later    
@@ -159,7 +167,10 @@ class Camera:
 
     def show_image(self):        
         filename = self.get_image()
-        self.image_overlay = self.overlay_image(filename, False)
+        self.image_overlay = self.overlay_image(filename, 0, 5)
+        if self.show_image_time > 0:
+            sleep(self.show_image_time)
+            self.hide_image()
         
     def hide_image(self):
         if self.image_overlay != -1:
