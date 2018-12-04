@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import picamera
-from PIL import Image
+from PIL import Image, ImageFont, ImageDraw
 import numpy as np
 from time import sleep
 
@@ -101,6 +101,26 @@ class Camera:
         
     def overlay_text(self,text):
         self.camera.annotate_text = text
+        
+    def overlay_countdown(self):
+        countdownFont = ImageFont.truetype("/usr/share/fonts/dejavu/DejaVuSans.ttf", 80)
+        countdownImage = Image.new("RGBA", (self.screen_w,self.screen_h), (0,0,0,0))
+        countdown_overlay = self.camera.add_overlay(countdownImage.tobytes(), size=(self.screen_w, self.screen_h), format='rgba', layer=5)
+
+        for counter in range(self.photo_countdown_time,0,-1):
+            img = countdownImage.copy()
+            draw = ImageDraw.Draw(img)
+            draw.text((self.screen_w/2,50), "..." + str(counter), (255,255,255), font=countdownFont)
+            
+            # create new overlay with countdown number
+            countdown_overlay_new = self.camera.add_overlay(img.tobytes(), size=(self.screen_w, self.screen_h), format='rgba', layer=5)
+            # remove previous overlay
+            self.camera.remove_overlay(countdown_overlay)
+            # save this overlay as previous 
+            countdown_overlay = countdown_overlay_new
+            sleep(1)
+        # remove last overlay
+        self.camera.remove_overlay(countdown_overlay)
         
     def remove_overlay(self,overlay_id):
         if overlay_id != -1:
@@ -225,9 +245,10 @@ class Camera:
         self.camera.preview.alpha = 255    
             
         # countdown from photo_countdown_time, and display countdown on screen
-        for counter in range(self.photo_countdown_time,0,-1):
-            self.overlay_text("             ..." + str(counter))
-            sleep(1)
+        #for counter in range(self.photo_countdown_time,0,-1):
+        #    self.overlay_text("             ..." + str(counter))
+        #    sleep(1)
+        self.overlay_countdown()
 
         # capture
         self.camera.annotate_text = ''

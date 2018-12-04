@@ -23,8 +23,8 @@ pixel_count = 14
 # the label is subtracted from the height so for a 128px label the photo height is 1152px
 photo_w    = 1920   # photo resolution
 photo_h    = 1280
-photo_hflip = True
-preview_hflip = False
+photo_hflip = False
+preview_hflip = True
 
 # the path to the label
 # if there should be no label you need to can comment this entry out
