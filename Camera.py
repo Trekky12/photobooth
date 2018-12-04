@@ -3,7 +3,7 @@
 import picamera
 from PIL import Image, ImageFont, ImageDraw
 import numpy as np
-from time import sleep
+from time import sleep, time
 
 import datetime
 import subprocess
@@ -31,6 +31,7 @@ class Camera:
     photo_hflip         = True
     preview_hflip       = True
     show_image_time     = 0
+    final_image_start   = 0
 
 
     def __init__(self, config):
@@ -188,9 +189,7 @@ class Camera:
     def show_image(self):        
         filename = self.get_image()
         self.image_overlay = self.overlay_image(filename, 0, 5)
-        if self.show_image_time > 0:
-            sleep(self.show_image_time)
-            self.hide_image()
+        self.final_image_start = time()
         
     def hide_image(self):
         if self.image_overlay != -1:
@@ -199,7 +198,13 @@ class Camera:
             # Reset current image
             self.base_filename = None
             self.final_image = None
-            
+        
+        
+    def hide_image_if_needed(self):
+        currentTime = time()
+        if self.show_image_time > 0 and self.final_image_start > 0 and currentTime - self.final_image_start > self.show_image_time:
+            self.hide_image()
+    
     def get_image(self):
         if self.final_image is not None:
             return self.final_image

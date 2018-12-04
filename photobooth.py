@@ -95,6 +95,10 @@ def main():
             boxio.set_dome_led(True)
         elif i%config.blink_speed == 0:
             boxio.set_dome_led(False)
+            
+            
+        # Hide last image?
+        camera.hide_image_if_needed()
         
         # Dome button pressed
         if boxio.is_dome_pressed():
