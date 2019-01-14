@@ -1,15 +1,18 @@
 #GPIO PINs
-btn_single = 17     # pin that the 'take 1 photo' button is attached to
-btn_multi  = 22     # pin that the 'take multiple photos' button is attached to
-btn_print  = 27     # pin that the 'print photo' button is attached to
-btn_dome   = 18     # pin that the big dome button is attachted to
-btn_exit   = 4      # pin that the 'exit' button is attached to
-btn_relay  = 23     # pin that triggers the relay
-led_single = 12     # pin that the single led is attached to
-led_multi  = 6      # pin that the multi led is attached to
-led_print  = 16     # pin that the print led is attached to
-led_dome   = 5      # pin that the big dome led is attached to
-relay      = 24     # pin that the relay for enable the printer is connected
+btn_single      = 17     # pin that the 'take 1 photo' button is attached to
+btn_multi       = 22     # pin that the 'take multiple photos' button is attached to
+btn_print       = 27     # pin that the 'print photo' button is attached to
+btn_dome        = 18     # pin that the big dome button is attachted to
+btn_exit        = 4      # pin that the 'exit' button is attached to
+btn_relay       = 23     # pin that triggers the relay
+btn_retry_print = 20     # pin that starts the printer in cups when an error occured
+
+led_single      = 12     # pin that the single led is attached to
+led_multi       = 6      # pin that the multi led is attached to
+led_print       = 16     # pin that the print led is attached to
+led_dome        = 5      # pin that the big dome led is attached to
+
+relay           = 24     # pin that the relay for enable the printer is connected
 
 # WS2801 LED count
 pixel_count = 14    
@@ -45,7 +48,7 @@ blink_speed = 8
 prep_delay  = 2             
 
 # countdown time before photo is taken
-photo_countdown_time = 10    
+photo_countdown_time = 2    
 
 # show the final image for x seconds (0 for endless)
 show_image_time = 60
@@ -56,3 +59,9 @@ images_folder = "photos"
 # Additional locations where images will be saved to (optional):
 images_folder_copy = ["/home/pi/photos", "/media/pi/INTENSO/photos"]
 
+lang = {
+        "error_printer" : "Drucker Fehler", 
+        "printer_started" : "Druck gestartet",
+        "error_ribbon" : "Problem mit dem Farbband",
+        "error_paper" : "Problem mit dem Papier"
+}

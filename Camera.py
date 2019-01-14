@@ -123,6 +123,14 @@ class Camera:
         # remove last overlay
         self.camera.remove_overlay(countdown_overlay)
         
+    def overlay_text_as_image(self, text, layer, x = 50, y = 50, fontsize = 80):
+        font = ImageFont.truetype("/usr/share/fonts/dejavu/DejaVuSans.ttf", fontsize)
+        img = Image.new("RGBA", (self.screen_w,self.screen_h), (0,0,0,0))
+        draw = ImageDraw.Draw(img)
+        draw.text((x,y), "%s" % text, (255,255,255), font=font)
+
+        return self.camera.add_overlay(img.tobytes(), size=(self.screen_w, self.screen_h), format='rgba', layer=layer)      
+        
     def remove_overlay(self,overlay_id):
         if overlay_id != -1:
             self.camera.remove_overlay(overlay_id)

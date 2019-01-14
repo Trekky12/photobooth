@@ -41,7 +41,7 @@ def exit_box():
     camera.stop()
     leds.clear()
     boxio.trigger_relay()
-    boxio.cleanup()	 
+    boxio.cleanup()
     sys.exit()
     
     
@@ -84,6 +84,8 @@ def main():
     overlay_intro = intro()
 
     i = 0
+    error_overlay = None
+    error_message = False
     while True:
 
         # LEDs rainbow
@@ -96,9 +98,9 @@ def main():
         elif i%config.blink_speed == 0:
             boxio.set_dome_led(False)
             
-            
-        # Hide last image?
-        camera.hide_image_if_needed()
+        # Hide last image? only if not printing
+        if not boxio.is_print_pressed():
+            camera.hide_image_if_needed()
         
         # Dome button pressed
         if boxio.is_dome_pressed():
@@ -162,23 +164,84 @@ def main():
                             print("Error: %s" % e.strerror)
                             logger.error('Error: %s ', e.strerror)            
             
-            # show montage in layer 5
-            camera.show_image()
-            
             # enable buttons
             boxio.reset_dome_pressed()
             boxio.enable_buttons()
             
+            # show montage in layer 5
+            camera.show_image()
+            
             # show intro in layer 4
             overlay_intro = intro()
-            
+        
+        # Print Button Pressed
         if boxio.is_print_pressed():
-            print("Print pressed")
-            logger.info('Print pressed')
-            boxio.reset_print_pressed()
-            filename = camera.get_image()
-            boxio.printPic(filename)
+           
+            # Start print
+            if not boxio.print_started():
+                print("Print pressed")
+                logger.info('Print pressed')
+                 # Disable Front User Buttons only so no new photo/print can be triggered
+                boxio.disable_buttons(True)
+                filename = camera.get_image()
+                print_id = boxio.print_image(filename)
+                error_overlay = camera.overlay_text_as_image(config.lang["printer_started"], 5, 0, 30, 50)
             
+            # Print has errors      
+            error = boxio.has_print_error()
+            if not error == False and error_message == False:
+                print("PRINT ERROR")
+                logger.debug("PRINT ERROR")
+                logger.debug(error)
+                if not error_overlay is None:
+                    camera.remove_overlay(error_overlay)
+                    
+                if "ribbon" in error.lower():
+                    message = config.lang["error_ribbon"]
+                elif "paper" in error.lower():
+                    message = config.lang["error_paper"]
+                else:
+                    message = config.lang["error_printer"]
+                error_overlay = camera.overlay_text_as_image(message, 5, 0, 30, 50)
+                error_message = True
+            
+            # Print finished
+            if boxio.printed():
+                print("PRINT FINISHED")
+                logger.debug("PRINT FINISHED")
+                boxio.set_print_led(False)
+                boxio.reset_print_pressed()
+
+                if not error_overlay is None:
+                    camera.remove_overlay(error_overlay)
+                    error_overlay = None
+                
+                error_message = False
+                boxio.enable_buttons(True)
+                
+            else:
+                # Blink the Print LED
+                if i%config.blink_speed == 4:
+                    boxio.set_print_led(True)
+                elif i%config.blink_speed == 0:
+                    boxio.set_print_led(False)
+            
+        
+        # Restart Printer and Print Job (when printer is stopped in case of errors)
+        if boxio.is_retry_print_pressed():
+            print("PRINTER START Pressed")
+            logger.debug("PRINTER START PRESSED")
+            boxio.retry_print_job()
+            
+            if not error_overlay is None:
+                camera.remove_overlay(error_overlay)
+                error_overlay = camera.overlay_text_as_image(config.lang["printer_started"], 5, 0, 30, 50)
+            
+            error_message = False
+            boxio.reset_retry_print_pressed()
+        
+
+        # Exit Button pressed
         if boxio.is_exit_pressed():
             print("Exit pressed")
             logger.info('Exit pressed')
@@ -188,7 +251,7 @@ def main():
 
 
         
-# check folder existance
+# check folder existence
 check_folders()
 
 boxio = BoxIO(config)
