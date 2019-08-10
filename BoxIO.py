@@ -30,6 +30,14 @@ class BoxIO:
     image_mode_multi        = False
     btn_retry_print_pressed = False
     
+    btn_single_enabled      = False
+    btn_multi_enabled       = False
+    btn_print_enabled       = False
+    btn_dome_enabled        = False
+    btn_exit_enabled        = False
+    btn_relay_enabled       = False
+    btn_retry_print_enabled = False
+    
     conn            = None
     default_printer = None
     print_job_id    = None
@@ -112,55 +120,106 @@ class BoxIO:
         self.conn = cups.Connection()
         self.default_printer = self.conn.getDefault()
         cups.setUser('pi')
+        self.enable_printer()
+        self.conn.cancelAllJobs(self.default_printer)
         
+        self.enable_button_exit()
+        self.enable_button_relay()
         self.enable_buttons()
 
     def enable_buttons(self, only_Front = False):
-        if not self.btn_single is None:
-            GPIO.add_event_detect(self.btn_single,          GPIO.FALLING, callback=self.btn_single_press,       bouncetime=200)
-            
-        if not self.btn_multi is None:
-            GPIO.add_event_detect(self.btn_multi,           GPIO.FALLING, callback=self.btn_multi_press,        bouncetime=200)
+        self.enable_button_single()
+        self.enable_button_multi()
+        self.enable_button_print()
+        self.enable_button_dome()
         
-        if not self.btn_print is None:
-            GPIO.add_event_detect(self.btn_print,           GPIO.FALLING, callback=self.btn_print_press,        bouncetime=200)
-
-        if not self.btn_dome is None:
-            GPIO.add_event_detect(self.btn_dome,            GPIO.FALLING, callback=self.btn_dome_press,         bouncetime=200)
-            
         if not only_Front:
-            if not self.btn_exit is None:
-                GPIO.add_event_detect(self.btn_exit,        GPIO.FALLING, callback=self.btn_exit_press,         bouncetime=200)
-                
-            if not self.btn_relay is None:
-                GPIO.add_event_detect(self.btn_relay,       GPIO.FALLING, callback=self.btn_relay_press,        bouncetime=200)
-                
-            if not self.btn_retry_print is None:
-                GPIO.add_event_detect(self.btn_retry_print, GPIO.FALLING, callback=self.btn_retry_print_press,  bouncetime=200)
+            #self.enable_button_exit()
+            #self.enable_button_relay()
+            self.enable_button_retry_print()
+    
+    def enable_button_single(self):
+        if not self.btn_single is None and not self.btn_single_enabled:
+            GPIO.add_event_detect(self.btn_single,          GPIO.FALLING, callback=self.btn_single_press,       bouncetime=200)
+            self.btn_single_enabled = True
+
+    def enable_button_multi(self):
+        if not self.btn_multi is None and not self.btn_multi_enabled:
+            GPIO.add_event_detect(self.btn_multi,           GPIO.FALLING, callback=self.btn_multi_press,        bouncetime=200)
+            self.btn_multi_enabled = True
+
+    def enable_button_print(self):
+        if not self.btn_print is None and not self.btn_print_enabled:
+            GPIO.add_event_detect(self.btn_print,           GPIO.FALLING, callback=self.btn_print_press,        bouncetime=200)
+            self.btn_print_enabled = True
+            
+    def enable_button_dome(self):
+        if not self.btn_dome is None and not self.btn_dome_enabled:
+            GPIO.add_event_detect(self.btn_dome,            GPIO.FALLING, callback=self.btn_dome_press,         bouncetime=200)
+            self.btn_dome_enabled = True
+            
+    def enable_button_exit(self):
+        if not self.btn_exit is None and not self.btn_exit_enabled:
+            GPIO.add_event_detect(self.btn_exit,            GPIO.FALLING, callback=self.btn_exit_press,         bouncetime=200)
+            self.btn_exit_enabled = True
+
+    def enable_button_relay(self):
+        if not self.btn_relay is None and not self.btn_relay_enabled:
+            GPIO.add_event_detect(self.btn_relay,          GPIO.FALLING, callback=self.btn_relay_press,        bouncetime=200)
+            self.btn_relay_enabled = True
+
+    def enable_button_retry_print(self):
+        if not self.btn_retry_print is None and not self.btn_retry_print_enabled:
+            GPIO.add_event_detect(self.btn_retry_print,    GPIO.FALLING, callback=self.btn_retry_print_press,  bouncetime=200)
+            self.btn_retry_print_enabled = True
     
     def disable_buttons(self, only_Front = False):
-        if not self.btn_single is None:
-            GPIO.remove_event_detect(self.btn_single)
+        self.disable_button_single()
+        self.disable_button_multi()
+        self.disable_button_print()
+        self.disable_button_dome()
         
-        if not self.btn_multi is None:
-            GPIO.remove_event_detect(self.btn_multi)
-        
-        if not self.btn_print is None:
-            GPIO.remove_event_detect(self.btn_print)
-
-        if not self.btn_dome is None:
-            GPIO.remove_event_detect(self.btn_dome)  
-
         if not only_Front:
-            if not self.btn_exit is None:
-                GPIO.remove_event_detect(self.btn_exit)
+            #self.disable_button_exit()
+            #self.disable_button_relay()
+            self.disable_button_retry_print()
+
+    def disable_button_single(self):
+        if not self.btn_single is None and self.btn_single_enabled:
+            GPIO.remove_event_detect(self.btn_single)
+            self.btn_single_enabled = False
             
-            if not self.btn_relay is None:
-                GPIO.remove_event_detect(self.btn_relay)  
-                
-            if not self.btn_retry_print is None:
-                GPIO.remove_event_detect(self.btn_retry_print)  
-        
+    def disable_button_multi(self):
+        if not self.btn_multi is None and self.btn_multi_enabled:
+            GPIO.remove_event_detect(self.btn_multi)
+            self.btn_multi_enabled = False
+
+    def disable_button_print(self):
+        if not self.btn_print is None and self.btn_print_enabled:
+            GPIO.remove_event_detect(self.btn_print)
+            self.btn_print_enabled = False
+           
+    def disable_button_dome(self):
+        if not self.btn_dome is None and self.btn_dome_enabled:
+            GPIO.remove_event_detect(self.btn_dome)
+            self.btn_dome_enabled = False
+
+    def disable_button_exit(self):
+        if not self.btn_exit is None and self.btn_exit_enabled:
+            GPIO.remove_event_detect(self.btn_exit)
+            self.btn_exit_enabled = False
+
+    def disable_button_relay(self):
+        if not self.btn_relay is None and self.btn_relay_enabled:
+            GPIO.remove_event_detect(self.btn_relay)
+            self.btn_relay_enabled = False
+
+    def disable_button_retry_print(self):
+        if not self.btn_retry_print is None and self.btn_retry_print_enabled:
+            GPIO.remove_event_detect(self.btn_retry_print)
+            self.btn_retry_print_enabled = False
+     
+     
     def btn_single_press(self, channel):
         print("Button Single pressed")
         logger.info("Button Single pressed")
@@ -280,7 +339,7 @@ class BoxIO:
 
     # Check if print job is done
     def printed(self):
-        logger.info(self.conn.getJobs().get(self.print_job_id, None))
+        #logger.info(self.conn.getJobs().get(self.print_job_id, None))
         if self.conn.getJobs().get(self.print_job_id, None):
             return False
         
@@ -306,15 +365,22 @@ class BoxIO:
 
         return False
         
-    def retry_print_job(self):
-        print("Enable Printer/Accept Jobs/Restart Job")
-        logger.info("Enable Printer/Accept Jobs/Restart Job")
-        self.conn.enablePrinter(self.default_printer)
-        self.conn.acceptJobs(self.default_printer)
+    def cancel_print_job(self, retry = False):
+        print("Cancel/Restart Job")
+        logger.info("Cancel/Restart Job")
+        self.enable_printer()
         
         if self.print_started() and not self.printed():
             # Release of job is not supported so instead cancel and resubmit the job
             self.conn.cancelJob(self.print_job_id)
-            self.print_image(self.document)
-        
-        
+            
+            if retry:
+                self.print_image(self.document)
+            else:
+                self.print_job_id = None
+                
+    def enable_printer(self, retry = False):
+        print("Enable Printer/Accept Jobs")
+        logger.info("Enable Printer/Accept Jobs")
+        self.conn.enablePrinter(self.default_printer)
+        self.conn.acceptJobs(self.default_printer)
