@@ -15,7 +15,6 @@ class BoxIO:
     btn_dome        = None     # pin that the big dome button is attachted to
     btn_exit        = None     # pin that the 'exit' button is attached to
     btn_relay       = None     # pin that triggers the relay
-    btn_retry_print = None     # pin that starts the printer in cups when an error occured
 
     led_single  = None     # pin that the single led is attached to
     led_multi   = None     # pin that the multi led is attached to
@@ -28,7 +27,6 @@ class BoxIO:
     btn_dome_pressed        = False
     btn_exit_pressed        = False
     image_mode_multi        = False
-    btn_retry_print_pressed = False
     
     btn_single_enabled      = False
     btn_multi_enabled       = False
@@ -36,7 +34,6 @@ class BoxIO:
     btn_dome_enabled        = False
     btn_exit_enabled        = False
     btn_relay_enabled       = False
-    btn_retry_print_enabled = False
     
     conn            = None
     default_printer = None
@@ -59,8 +56,6 @@ class BoxIO:
             self.btn_exit = config.btn_exit
         if hasattr(config, "btn_relay"):
             self.btn_relay = config.btn_relay
-        if hasattr(config, "btn_retry_print"):
-            self.btn_retry_print = config.btn_retry_print
         if hasattr(config, "led_single"):
             self.led_single = config.led_single
         if hasattr(config, "led_multi"):
@@ -91,9 +86,6 @@ class BoxIO:
             
         if not self.btn_relay is None:
             GPIO.setup(self.btn_relay,  GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            
-        if not self.btn_retry_print is None:
-            GPIO.setup(self.btn_retry_print,  GPIO.IN, pull_up_down=GPIO.PUD_UP)
             
         if not self.led_single is None:
             GPIO.setup(self.led_single, GPIO.OUT)
@@ -133,10 +125,9 @@ class BoxIO:
         self.enable_button_print()
         self.enable_button_dome()
         
-        if not only_Front:
-            #self.enable_button_exit()
-            #self.enable_button_relay()
-            self.enable_button_retry_print()
+        #if not only_Front:
+        #    self.enable_button_exit()
+        #    self.enable_button_relay()
     
     def enable_button_single(self):
         if not self.btn_single is None and not self.btn_single_enabled:
@@ -167,11 +158,6 @@ class BoxIO:
         if not self.btn_relay is None and not self.btn_relay_enabled:
             GPIO.add_event_detect(self.btn_relay,          GPIO.FALLING, callback=self.btn_relay_press,        bouncetime=200)
             self.btn_relay_enabled = True
-
-    def enable_button_retry_print(self):
-        if not self.btn_retry_print is None and not self.btn_retry_print_enabled:
-            GPIO.add_event_detect(self.btn_retry_print,    GPIO.FALLING, callback=self.btn_retry_print_press,  bouncetime=200)
-            self.btn_retry_print_enabled = True
     
     def disable_buttons(self, only_Front = False):
         self.disable_button_single()
@@ -179,10 +165,9 @@ class BoxIO:
         self.disable_button_print()
         self.disable_button_dome()
         
-        if not only_Front:
-            #self.disable_button_exit()
-            #self.disable_button_relay()
-            self.disable_button_retry_print()
+        #if not only_Front:
+        #    self.disable_button_exit()
+        #    self.disable_button_relay()
 
     def disable_button_single(self):
         if not self.btn_single is None and self.btn_single_enabled:
@@ -213,11 +198,6 @@ class BoxIO:
         if not self.btn_relay is None and self.btn_relay_enabled:
             GPIO.remove_event_detect(self.btn_relay)
             self.btn_relay_enabled = False
-
-    def disable_button_retry_print(self):
-        if not self.btn_retry_print is None and self.btn_retry_print_enabled:
-            GPIO.remove_event_detect(self.btn_retry_print)
-            self.btn_retry_print_enabled = False
      
      
     def btn_single_press(self, channel):
@@ -266,10 +246,6 @@ class BoxIO:
         logger.info("Button Relay pressed")
         self.trigger_relay()   
         
-    def btn_retry_print_press(self, channel):
-        print("Button Retry Print pressed")
-        logger.info("Button Retry Print pressed")
-        self.btn_retry_print_pressed = True
         
     def is_image_mode_multi(self):
         return self.image_mode_multi
@@ -287,13 +263,7 @@ class BoxIO:
         self.btn_print_pressed = False        
 
     def is_exit_pressed(self):
-        return self.btn_exit_pressed  
-
-    def is_retry_print_pressed(self):
-        return self.btn_retry_print_pressed    
-
-    def reset_retry_print_pressed(self):
-        self.btn_retry_print_pressed = False              
+        return self.btn_exit_pressed   
 
     def cleanup(self):
         GPIO.cleanup()

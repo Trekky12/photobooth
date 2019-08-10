@@ -5,7 +5,6 @@ btn_print       = 27     # pin that the 'print photo' button is attached to
 btn_dome        = 18     # pin that the big dome button is attachted to
 btn_exit        = 4      # pin that the 'exit' button is attached to
 btn_relay       = 23     # pin that triggers the relay
-btn_retry_print = 20     # pin that starts the printer in cups when an error occured
 
 led_single      = 12     # pin that the single led is attached to
 led_multi       = 6      # pin that the multi led is attached to
